@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(() => {
       currentIndex = (currentIndex + 1) % movies.length;
       updateSlider(movies);
-    }, 12000);
+    }, 20000);
   }
 
   function shuffleArray(array) {
