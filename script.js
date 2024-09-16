@@ -7,6 +7,14 @@ const url = (page) =>
 document.addEventListener("DOMContentLoaded", () => {
   const searchbar = document.getElementById("searchbar");
   const movieContainer = document.getElementById("movie-container");
+  const previousBtn = document.getElementById("previous-page");
+  const nextPageBtn = document.getElementById("next-page");
+  const pageNumberDisplay = document.getElementById("page-number");
+  const fourStarsCount = document.getElementById("four-stars-count");
+  const threeStarsCount = document.getElementById("three-stars-count");
+  const twoStarsCount = document.getElementById("two-stars-count");
+  const oneStarCount = document.getElementById("one-star-count");
+  const zeroStarsCount = document.getElementById("zero-stars-count");
 
   function fetchMovies(page) {
     fetch(url(page))
@@ -17,9 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return response.json();
       })
       .then((data) => {
-        allMovies = [...allMovies, ...data.results];
-        displayMovies(data.results);
+        allMovies = data.results;
+        displayMovies(allMovies);
         startSlider(allMovies);
+        updatePaginationControls();
+        updateResultsCounter(allMovies);
       })
       .catch((error) => {
         console.error("Error fetching movies:", error);
@@ -29,10 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchMovies(page);
 
   function displayMovies(movies) {
+    movieContainer.innerHTML = ""; // Clear previous movies
     movies.forEach((movie) => {
       const movieDiv = document.createElement("div");
       let emoji = "";
-
       if (movie.vote_average >= 8) {
         emoji = "⭐️⭐️⭐️⭐️";
       } else if (movie.vote_average >= 6) {
@@ -66,7 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
         const isFavorite = favorites.some((fav) => fav.title === movie.title);
         const addFavoritesButton = document.getElementById("add-fav-btn");
-
         if (isFavorite) {
           addFavoritesButton.classList.add("added");
           addFavoritesButton.textContent = "Added";
@@ -75,18 +84,20 @@ document.addEventListener("DOMContentLoaded", () => {
           addFavoritesButton.textContent = "Add to Favorites";
         }
 
-        addFavoritesButton.addEventListener("click", () => {
+        addFavoritesButton.onclick = () => {
           const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
           const isFavorite = favorites.some((fav) => fav.title === movie.title);
-
           if (!isFavorite) {
             favorites.push({
               title: movie.title,
               poster_path: `https://image.tmdb.org/t/p/w500/${movie.poster_path}`,
+              date: movie.release_date,
+              rating: movie.vote_average,
             });
             localStorage.setItem("favorites", JSON.stringify(favorites));
             addFavoritesButton.classList.add("added");
             addFavoritesButton.textContent = "Added";
+            removeMovieFromMain(movie.title);
           } else {
             const updatedFavorites = favorites.filter(
               (fav) => fav.title !== movie.title
@@ -94,12 +105,52 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
             addFavoritesButton.classList.remove("added");
             addFavoritesButton.textContent = "Add to Favorites";
+            addMovieToMain(movie);
           }
-        });
+          displayFavorites();
+        };
       });
 
       movieContainer.appendChild(movieDiv);
     });
+  }
+
+  function updateResultsCounter(movies) {
+    let fourStars = 0;
+    let threeStars = 0;
+    let twoStars = 0;
+    let oneStar = 0;
+    let zeroStars = 0;
+
+    movies.forEach((movie) => {
+      if (movie.vote_average >= 8) {
+        fourStars++;
+      } else if (movie.vote_average >= 6) {
+        threeStars++;
+      } else if (movie.vote_average >= 4) {
+        twoStars++;
+      } else if (movie.vote_average >= 2) {
+        oneStar++;
+      } else {
+        zeroStars++;
+      }
+    });
+
+    fourStarsCount.textContent = `⭐️⭐️⭐️⭐️ Stars: ${fourStars}`;
+    threeStarsCount.textContent = `⭐️⭐️⭐️ Stars: ${threeStars}`;
+    twoStarsCount.textContent = `⭐️⭐️ Stars: ${twoStars}`;
+    oneStarCount.textContent = `⭐️ Stars: ${oneStar}`;
+    zeroStarsCount.textContent = `🗑️ Stars: ${zeroStars}`;
+  }
+
+  function removeMovieFromMain(title) {
+    allMovies = allMovies.filter((movie) => movie.title !== title);
+    displayMovies(allMovies);
+  }
+
+  function addMovieToMain(movie) {
+    allMovies.push(movie);
+    displayMovies(allMovies);
   }
 
   searchbar.addEventListener("input", (event) => {
@@ -113,22 +164,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function removeFromFavorites(index) {
     const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    favorites.splice(index, 1);
+    const removedMovie = favorites.splice(index, 1)[0];
     localStorage.setItem("favorites", JSON.stringify(favorites));
     displayFavorites();
+    addMovieToMain(removedMovie);
   }
 
   function displayFavorites() {
     const favoritesContainer = document.getElementById("favorites-container");
     favoritesContainer.innerHTML = "";
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 
+    const closeButton = document.createElement("span");
+    closeButton.classList.add("exit-fav-btn");
+    closeButton.textContent = "×";
+    closeButton.addEventListener("click", () => {
+      favoritesContainer.style.display = "none";
+    });
+    favoritesContainer.appendChild(closeButton);
+
+    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
     if (favorites.length === 0) {
       const funnyMessage = document.createElement("h1");
       funnyMessage.textContent = "Wow, such emptyness!";
       favoritesContainer.appendChild(funnyMessage);
     }
-
     favorites.forEach((movie, index) => {
       const favoriteDiv = document.createElement("div");
       favoriteDiv.classList.add("favorite-card");
@@ -171,7 +230,6 @@ document.addEventListener("DOMContentLoaded", () => {
   exitFavoritesButton.addEventListener("click", () => {
     const favoritesContainer = document.getElementById("favorites-container");
     favoritesContainer.style.display = "none";
-    exitFavoritesButton.style.display = "none";
     document.querySelector(".top-bar").style.visibility = "visible";
   });
 
@@ -179,7 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const sliderBackdrop = document.getElementById("slider-backdrop");
   const sliderTitle = document.getElementById("slider-title");
   const sliderDate = document.getElementById("slider-date");
-
   let currentIndex = 0;
 
   function updateSlider(movies) {
@@ -237,13 +294,22 @@ document.addEventListener("DOMContentLoaded", () => {
     movies.forEach((movie) => movieContainer.appendChild(movie));
   }
 
-  window.addEventListener("scroll", () => {
-    if (
-      window.innerHeight + window.scrollY >=
-      document.body.offsetHeight - 500
-    ) {
-      page++;
+  function updatePaginationControls() {
+    pageNumberDisplay.textContent = `Page ${page}`;
+    previousBtn.disabled = page === 1;
+  }
+
+  previousBtn.addEventListener("click", () => {
+    if (page > 1) {
+      page--;
       fetchMovies(page);
     }
   });
+
+  nextPageBtn.addEventListener("click", () => {
+    page++;
+    fetchMovies(page);
+  });
+
+  fetchMovies(page);
 });

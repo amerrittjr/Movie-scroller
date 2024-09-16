@@ -25,14 +25,14 @@
     <header class="top-bar visible">
       <div class="main-container">
         <button id="fav-btn" class="fav-btn">Favorites</button>
-        <button
-          id="exit-favorites-btn"
-          class="exit-fav-btn"
-          style="display: none"
-        ></button>
         <div class="favorites-container" id="favorites-container">
-          <span class="exit-fav-btn" id="exit-favorites-btn">&times;</span>
           <div id="favorites-list" class="favorites-list"></div>
+          <span
+            id="exit-favorites-btn"
+            class="exit-fav-btn"
+            style="display: none"
+            >&times;</span
+          >
         </div>
         <div class="searchbar-container sticky">
           <input
@@ -61,7 +61,6 @@
         </div>
       </div>
     </header>
-
     <div id="movie-slider" class="movie-slider">
       <div class="slider-content">
         <div
@@ -75,9 +74,7 @@
         </div>
       </div>
     </div>
-
     <div id="movie-container" class="movie-container"></div>
-
     <div id="movie-modal" class="modal" data-open="modalOpener">
       <div class="modal-content">
         <span class="close" id="close-modal">&times;</span>
@@ -94,6 +91,20 @@
         </div>
       </div>
     </div>
+    <footer>
+      <div id="pagination-controls" class="pagination-controls">
+        <button id="previous-page" class="pagination-btn">Previous</button>
+        <button id="page-number" class="page-number">Page 1</button>
+        <button id="next-page" class="pagination-btn">Next</button>
+      </div>
+      <div class="results-counter" id="results-counter">
+        <div id="four-stars-count">⭐️⭐️⭐️⭐️: 0</div>
+        <div id="three-stars-count">⭐️⭐️⭐️: 0</div>
+        <div id="two-stars-count">⭐️⭐️: 0</div>
+        <div id="one-star-count">⭐️: 0</div>
+        <div id="zero-stars-count">0 Stars: 0</div>
+      </div>
+    </footer>
     <script src="config.js"></script>
     <script src="script.js" defer></script>
   </body>
